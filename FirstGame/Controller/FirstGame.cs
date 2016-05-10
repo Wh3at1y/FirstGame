@@ -5,6 +5,8 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Storage;
 using Microsoft.Xna.Framework.Input;
 
+using FirstGame.Model;
+
 namespace FirstGame.Controller
 {
 	/// <summary>
@@ -12,8 +14,9 @@ namespace FirstGame.Controller
 	/// </summary>
 	public class FirstGame : Game
 	{
-		GraphicsDeviceManager graphics;
-		SpriteBatch spriteBatch;
+		private GraphicsDeviceManager graphics;
+		private SpriteBatch spriteBatch;
+		private Player player;
 
 		public FirstGame ()
 		{
@@ -29,21 +32,24 @@ namespace FirstGame.Controller
 		/// </summary>
 		protected override void Initialize ()
 		{
-			// TODO: Add your initialization logic here
+			player = new Player ();
             
 			base.Initialize ();
 		}
 
-		/// <summary>
+
 		/// LoadContent will be called once per game and is the place to load
 		/// all of your content.
-		/// </summary>
 		protected override void LoadContent ()
 		{
 			// Create a new SpriteBatch, which can be used to draw textures.
 			spriteBatch = new SpriteBatch (GraphicsDevice);
 
 			//TODO: use this.Content to load your game content here 
+
+			// Load the player resources 
+			Vector2 playerPosition = new Vector2(GraphicsDevice.Viewport.TitleSafeArea.X,GraphicsDevice.Viewport.TitleSafeArea.Y +GraphicsDevice.Viewport.TitleSafeArea.Height / 2);
+			player.Initialize(Content.Load<Texture2D>("Textures/player"), playerPosition);
 		}
 
 		/// <summary>
@@ -74,6 +80,16 @@ namespace FirstGame.Controller
 			graphics.GraphicsDevice.Clear (Color.AntiqueWhite);
             
 			//TODO: Add your drawing code here
+
+			// Start drawing
+			spriteBatch.Begin();
+
+			// Draw the Player
+			player.Draw(spriteBatch);
+
+			// Stop drawing
+			spriteBatch.End();
+
             
 			base.Draw (gameTime);
 		}
