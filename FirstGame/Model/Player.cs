@@ -47,18 +47,38 @@ namespace FirstGame.Model
 			get { return PlayerTexture.Height; }
 		}
 
-
-
-
-
-
 		public int Score
 		{
 			get{ return score; }
 			set{ score = value; }
 		}
 
-		public Player ()
+
+
+		public void Initialize(Texture2D texture, Vector2 position)
+		{
+			PlayerTexture = texture; 
+
+			// Set the starting position of the player around the middle of the screen and to the back
+			Position = position;
+
+			// Set the player to be active
+			active = true;
+
+			// Set the player health
+			health = 100;
+
+			//Set the player score
+			score = 0;
+		}
+
+
+		public void Draw(SpriteBatch spriteBatch)
+		{ 
+			spriteBatch.Draw(PlayerTexture, Position, null, Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f);
+		}
+
+		public void Update()
 		{
 		}
 	}
