@@ -9,11 +9,13 @@ using FirstGame.Model;
 
 namespace FirstGame.Controller
 {
-	/// <summary>
 	/// This is the main type for your game.
-	/// </summary>
 	public class FirstGame : Game
 	{
+		#region Declaration Section
+		private bool isHoriz;
+		private bool isDown;
+		private bool isUp;
 		private GraphicsDeviceManager graphics;
 		private SpriteBatch spriteBatch;
 		private Player player;
@@ -28,19 +30,21 @@ namespace FirstGame.Controller
 
 		// A movement speed for the player
 		private float playerMoveSpeed;
+		#endregion
 
+		#region Constructor
 		public FirstGame ()
 		{
 			graphics = new GraphicsDeviceManager (this);
 			Content.RootDirectory = "Content";
 		}
+		#endregion
 
-		/// <summary>
+		#region Initialize (For Game Engine)
 		/// Allows the game to perform any initialization it needs to before starting to run.
 		/// This is where it can query for any required services and load any non-graphic
 		/// related content.  Calling base.Initialize will enumerate through any components
 		/// and initialize them as well.
-		/// </summary>
 		protected override void Initialize ()
 		{
 			player = new Player ();
@@ -50,8 +54,9 @@ namespace FirstGame.Controller
             
 			base.Initialize ();
 		}
+		#endregion
 
-
+		#region Load Content (Pictures)
 		/// LoadContent will be called once per game and is the place to load
 		/// all of your content.
 		protected override void LoadContent ()
@@ -59,62 +64,74 @@ namespace FirstGame.Controller
 			// Create a new SpriteBatch, which can be used to draw textures.
 			spriteBatch = new SpriteBatch (GraphicsDevice);
 
-			//TODO: use this.Content to load your game content here 
-
 			// Load the player resources 
-			Vector2 playerPosition = new Vector2(GraphicsDevice.Viewport.TitleSafeArea.X,GraphicsDevice.Viewport.TitleSafeArea.Y +GraphicsDevice.Viewport.TitleSafeArea.Height / 2);
+			Vector2 playerPosition = new Vector2(GraphicsDevice.Viewport.TitleSafeArea.X - 15,GraphicsDevice.Viewport.TitleSafeArea.Y +GraphicsDevice.Viewport.TitleSafeArea.Height / 3);
+
+			//Initializes the player's texture
 			player.Initialize(Content.Load<Texture2D>("Textures/player"), playerPosition);
 		}
+		#endregion
 
-		#region Update Region.
+		#region Update Player (KeyStrokes)
 		private void UpdatePlayer(GameTime gameTime)
 		{
-
 			// Get Thumbstick Controls
 			player.Position.X += currentGamePadState.ThumbSticks.Left.X *playerMoveSpeed;
 			player.Position.Y -= currentGamePadState.ThumbSticks.Left.Y *playerMoveSpeed;
-
 			// Use the Keyboard / Dpad
-			if (currentKeyboardState.IsKeyDown(Keys.Left) ||
+			if (currentKeyboardState.IsKeyDown(Keys.Left) || currentKeyboardState.IsKeyDown(Keys.A) ||
 				currentGamePadState.DPad.Left == ButtonState.Pressed)
 			{
 				player.Position.X -= playerMoveSpeed;
+				isHoriz = true;
+				isDown = false;
+				isUp = false;
 			}
-			if (currentKeyboardState.IsKeyDown(Keys.Right) ||
+			if (currentKeyboardState.IsKeyDown(Keys.Right) || currentKeyboardState.IsKeyDown(Keys.D) ||
 				currentGamePadState.DPad.Right == ButtonState.Pressed)
 			{
 				player.Position.X += playerMoveSpeed;
+				isHoriz = false;
+				isDown = false;
+				isUp = false;
 			}
-			if (currentKeyboardState.IsKeyDown(Keys.Up) ||
+			if (currentKeyboardState.IsKeyDown(Keys.Up) || currentKeyboardState.IsKeyDown(Keys.W) ||
 				currentGamePadState.DPad.Up == ButtonState.Pressed)
 			{
 				player.Position.Y -= playerMoveSpeed;
+				isHoriz = false;
+				isDown = false;
+				isUp = true;
 			}
-			if (currentKeyboardState.IsKeyDown(Keys.Down) ||
+			if (currentKeyboardState.IsKeyDown(Keys.Down) || currentKeyboardState.IsKeyDown(Keys.S) ||
 				currentGamePadState.DPad.Down == ButtonState.Pressed)
 			{
 				player.Position.Y += playerMoveSpeed;
+				isHoriz = false;
+				isDown = true;
+				isUp = false;
 			}
+			setPlayerBounds ();
+		}
+		#endregion
 
-			// Make sure that the player does not go out of bounds
-			player.Position.X = MathHelper.Clamp(player.Position.X, 0,GraphicsDevice.Viewport.Width - player.Width);
+		#region Player Region
+		// Sets the player bounds position
+		private void setPlayerBounds()
+		{
+			player.Position.X = MathHelper.Clamp(player.Position.X, -15,GraphicsDevice.Viewport.Width - player.Width);
 			player.Position.Y = MathHelper.Clamp(player.Position.Y, 0,GraphicsDevice.Viewport.Height - player.Height);
 		}
 		#endregion
 
-		/// <summary>
+		#region Updates the Game (Every 60 Seconds)
 		/// Allows the game to run logic such as updating the world,
 		/// checking for collisions, gathering input, and playing audio.
-		/// </summary>
-		/// <param name="gameTime">Provides a snapshot of timing values.</param>
 		protected override void Update (GameTime gameTime)
 		{
-			// For Mobile devices, this logic will close the Game when the Back button is pressed
-			// Exit() is obsolete on iOS
-			#if !__IOS__ &&  !__TVOS__
-			if (GamePad.GetState (PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState ().IsKeyDown (Keys.Escape))
-				Exit ();
-			#endif
+			//Exits the game if Escape is Pressed
+			if (Keyboard.GetState ().IsKeyDown (Keys.Escape)) 
+			{	Exit ();	}
             
 			// Save the previous state of the keyboard and game pad so we can determinesingle key/button presses
 			previousGamePadState = currentGamePadState;
@@ -130,29 +147,28 @@ namespace FirstGame.Controller
             
 			base.Update (gameTime);
 		}
+		#endregion
 			
-		/// <summary>
+		#region Puts everything on display (Last Method Call)
 		/// This is called when the game should draw itself.
-		/// </summary>
-		/// <param name="gameTime">Provides a snapshot of timing values.</param>
 		protected override void Draw (GameTime gameTime)
 		{
+			//Sets the background color
 			graphics.GraphicsDevice.Clear (Color.AntiqueWhite);
-            
-			//TODO: Add your drawing code here
 
 			// Start drawing
 			spriteBatch.Begin();
 
 			// Draw the Player
-			player.Draw(spriteBatch);
+			player.Draw(spriteBatch, isHoriz, isDown, isUp);
 
 			// Stop drawing
 			spriteBatch.End();
-
             
+			//Re-draws the screen every time it updates
 			base.Draw (gameTime);
 		}
+		#endregion
 	}
 }
 
