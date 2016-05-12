@@ -3,7 +3,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace FirstGame.Model
+namespace FirstGame.View
 {
 	public class Animation
 	{
@@ -40,7 +40,7 @@ namespace FirstGame.Model
 		public int FrameWidth 
 		{
 			get{ return frameWidth; }
-			set { FrameWidth = value; }
+			set { frameWidth = value; }
 		}
 
 		// Height of a given frame
@@ -69,7 +69,13 @@ namespace FirstGame.Model
 			set { looping = value; }
 		}
 		// Width of a given frame
-		public Vector2 position;
+		private Vector2 position;
+
+		public Vector2 Position
+		{
+			get	{return position; }
+			set { position = value; }
+		}
 
 		public void Initialize(Texture2D texture, Vector2 position, int frameWidth, int frameHeight, int frameCount,
 			int frametime, Color color, float scale, bool looping)

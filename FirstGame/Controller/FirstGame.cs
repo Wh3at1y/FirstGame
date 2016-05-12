@@ -4,8 +4,9 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Storage;
 using Microsoft.Xna.Framework.Input;
-
+using FirstGame.View;
 using FirstGame.Model;
+using System.Collections.Generic;
 
 namespace FirstGame.Controller
 {
@@ -13,16 +14,28 @@ namespace FirstGame.Controller
 	public class FirstGame : Game
 	{
 		#region Declaration Section
-		private bool isHoriz;
-		private bool isDown;
-		private bool isUp;
-		private bool isDiagUpLeft;
-		private bool isDiagDownLeft;
-		private bool isDiagDownRight;
-		private bool isDiagUpRight;
 		private GraphicsDeviceManager graphics;
 		private SpriteBatch spriteBatch;
 		private Player player;
+
+		// Image used to display the static background
+		Texture2D mainBackground;
+
+		// Parallaxing Layers
+		ParallaxingBackground bgLayer1;
+		ParallaxingBackground bgLayer2;
+
+
+		// Enemies
+		Texture2D enemyTexture;
+		List<Enemy> enemies;
+
+		// The rate at which the enemies appear
+		TimeSpan enemySpawnTime;
+		TimeSpan previousSpawnTime;
+
+		// A random number generator
+		Random random;
 
 		// Keyboard states used to determine key presses
 		private KeyboardState currentKeyboardState;
@@ -40,10 +53,7 @@ namespace FirstGame.Controller
 		public FirstGame ()
 		{
 			graphics = new GraphicsDeviceManager (this);
-			graphics.PreferredBackBufferWidth = 800;
-			graphics.PreferredBackBufferHeight = 800;
-			graphics.IsFullScreen = true;
-			graphics.ApplyChanges ();
+
 			Content.RootDirectory = "Content";
 		}
 		#endregion
@@ -57,9 +67,26 @@ namespace FirstGame.Controller
 		{
 			player = new Player ();
 
+			// Initialize the enemies list
+			enemies = new List<Enemy> ();
+
+			// Set the time keepers to zero
+			previousSpawnTime = TimeSpan.Zero;
+
+			// Used to determine how fast enemy respawns
+			enemySpawnTime = TimeSpan.FromSeconds(1.0f);
+
+			// Initialize our random number generator
+			random = new Random();
+
 			// Set a constant player move speed
 			playerMoveSpeed = 8.0f;
-            
+
+			bgLayer1 = new ParallaxingBackground();
+			bgLayer2 = new ParallaxingBackground();
+
+			mainBackground = Content.Load<Texture2D>("Textures/mainbackground");
+
 			base.Initialize ();
 		}
 		#endregion
@@ -73,16 +100,27 @@ namespace FirstGame.Controller
 			spriteBatch = new SpriteBatch (GraphicsDevice);
 
 			// Load the player resources 
-			Vector2 playerPosition = new Vector2(GraphicsDevice.Viewport.TitleSafeArea.X, GraphicsDevice.Viewport.TitleSafeArea.Y +GraphicsDevice.Viewport.TitleSafeArea.Height / 2);
+			Animation playerAnimation = new Animation();
+			Texture2D playerTexture = Content.Load<Texture2D>("Animations/shipAnimation");
+			playerAnimation.Initialize(playerTexture, Vector2.Zero, 115, 69, 8, 30, Color.White, 1f, true);
 
-			//Initializes the player's texture
-			player.Initialize(Content.Load<Texture2D>("Textures/player"), playerPosition);
+			Vector2 playerPosition = new Vector2 (GraphicsDevice.Viewport.TitleSafeArea.X, GraphicsDevice.Viewport.TitleSafeArea.Y
+			+ GraphicsDevice.Viewport.TitleSafeArea.Height / 2);
+
+			// Load the parallaxing background
+			bgLayer1.Initialize(Content, "Textures/bgLayer1", GraphicsDevice.Viewport.Width, -1);
+			bgLayer2.Initialize(Content, "Textures/bgLayer2", GraphicsDevice.Viewport.Width, -2);
+			enemyTexture = Content.Load<Texture2D>("Animations/mineAnimation");
+			mainBackground = Content.Load<Texture2D>("Textures/mainbackground");
+
+			player.Initialize(playerAnimation, playerPosition);
 		}
 		#endregion
 
 		#region Update Player (KeyStrokes)
 		private void UpdatePlayer(GameTime gameTime)
 		{
+			player.Update(gameTime);
 			// Get Thumbstick Controls
 			player.Position.X += currentGamePadState.ThumbSticks.Left.X * playerMoveSpeed;
 			player.Position.Y -= currentGamePadState.ThumbSticks.Left.Y * playerMoveSpeed;
@@ -91,71 +129,21 @@ namespace FirstGame.Controller
 				currentGamePadState.DPad.Left == ButtonState.Pressed)
 			{
 				player.Position.X -= playerMoveSpeed;
-				isHoriz = true;	isDown = false;	isUp = false;
-				isDiagDownLeft = false;	isDiagDownRight = false;
-				isDiagUpLeft = false;		isDiagUpRight = false;
 			}
 			if (currentKeyboardState.IsKeyDown(Keys.Right) || currentKeyboardState.IsKeyDown(Keys.D) ||
 				currentGamePadState.DPad.Right == ButtonState.Pressed)
 			{
 				player.Position.X += playerMoveSpeed;
-				isHoriz = false;	isDown = false;	isUp = false;
-				isDiagDownLeft = false;	isDiagDownRight = false;
-				isDiagUpLeft = false;		isDiagUpRight = false;
 			}
 			if (currentKeyboardState.IsKeyDown(Keys.Up) || currentKeyboardState.IsKeyDown(Keys.W) ||
 				currentGamePadState.DPad.Up == ButtonState.Pressed)
 			{
 				player.Position.Y -= playerMoveSpeed;
-				isHoriz = false;	isDown = false;	isUp = true;
-				isDiagDownLeft = false;	isDiagDownRight = false;
-				isDiagUpLeft = false;		isDiagUpRight = false;
 			}
 			if (currentKeyboardState.IsKeyDown(Keys.Down) || currentKeyboardState.IsKeyDown(Keys.S) ||
 				currentGamePadState.DPad.Down == ButtonState.Pressed)
 			{
 				player.Position.Y += playerMoveSpeed;
-				isHoriz = false;
-				isDown = true;
-				isUp = false;
-				isDiagDownLeft = false;	isDiagDownRight = false;
-				isDiagUpLeft = false;		isDiagUpRight = false;
-			}
-			if (currentKeyboardState.IsKeyDown(Keys.Down) && currentKeyboardState.IsKeyDown(Keys.Left) ||
-				currentGamePadState.DPad.Down == ButtonState.Pressed)
-			{
-				isHoriz = false;
-				isDown = false;
-				isUp = false;
-				isDiagDownLeft = true;	isDiagDownRight = false;
-				isDiagUpLeft = false;		isDiagUpRight = false;
-			}
-			if (currentKeyboardState.IsKeyDown(Keys.Up) && currentKeyboardState.IsKeyDown(Keys.Left) ||
-				currentGamePadState.DPad.Down == ButtonState.Pressed)
-			{
-				isHoriz = false;
-				isDown = false;
-				isUp = false;
-				isDiagDownLeft = false;	isDiagDownRight = false;
-				isDiagUpLeft = true;		isDiagUpRight = false;
-			}
-			if (currentKeyboardState.IsKeyDown(Keys.Down) && currentKeyboardState.IsKeyDown(Keys.Right) ||
-				currentGamePadState.DPad.Down == ButtonState.Pressed)
-			{
-				isHoriz = false;
-				isDown = false;
-				isUp = false;
-				isDiagDownLeft = false;	isDiagDownRight = true;
-				isDiagUpLeft = false;		isDiagUpRight = false;
-			}
-			if (currentKeyboardState.IsKeyDown(Keys.Up) && currentKeyboardState.IsKeyDown(Keys.Right) ||
-				currentGamePadState.DPad.Down == ButtonState.Pressed)
-			{
-				isHoriz = false;
-				isDown = false;
-				isUp = false;
-				isDiagDownLeft = false;	isDiagDownRight = false;
-				isDiagUpLeft = false;		isDiagUpRight = true;
 			}
 			setPlayerBounds ();
 		}
@@ -187,14 +175,63 @@ namespace FirstGame.Controller
 			currentKeyboardState = Keyboard.GetState();
 			currentGamePadState = GamePad.GetState(PlayerIndex.One);
 
-
 			//Update the player
 			UpdatePlayer(gameTime);
+
+			bgLayer1.Update();
+			bgLayer2.Update();
+
+			// Update the enemies
+			UpdateEnemies(gameTime);
             
 			base.Update (gameTime);
 		}
 		#endregion
-			
+
+		private void AddEnemy()
+		{ 
+		// Create the animation object
+		Animation enemyAnimation = new Animation();
+
+		// Initialize the animation with the correct animation information
+		enemyAnimation.Initialize(enemyTexture, Vector2.Zero, 47, 61, 8, 30,Color.White, 1f, true);
+
+		// Randomly generate the position of the enemy
+		Vector2 position = new Vector2(GraphicsDevice.Viewport.Width +enemyTexture.Width / 2, random.Next(100, GraphicsDevice.Viewport.Height -100));
+
+		// Create an enemy
+		Enemy enemy = new Enemy();
+
+		// Initialize the enemy
+		enemy.Initialize(enemyAnimation, position); 
+
+		// Add the enemy to the active enemies list
+		enemies.Add(enemy);
+		}
+
+		private void UpdateEnemies(GameTime gameTime)
+		{
+		// Spawn a new enemy enemy every 1.5 seconds
+		if (gameTime.TotalGameTime - previousSpawnTime > enemySpawnTime) 
+			{
+			previousSpawnTime = gameTime.TotalGameTime;
+
+			// Add an Enemy
+			AddEnemy();
+			}
+
+		// Update the Enemies
+		for (int i = enemies.Count - 1; i >= 0; i--) 
+			{
+			enemies[i].Update(gameTime);
+
+			if (enemies[i].Active == false)
+				{
+				enemies.RemoveAt(i);
+				} 
+			}
+		}
+
 		#region Puts everything on display (Last Method Call)
 		/// This is called when the game should draw itself.
 		protected override void Draw (GameTime gameTime)
@@ -205,8 +242,19 @@ namespace FirstGame.Controller
 			// Start drawing
 			spriteBatch.Begin();
 
+			spriteBatch.Draw(mainBackground, Vector2.Zero, Color.White);
+
+			// Draw the moving background
+			bgLayer1.Draw(spriteBatch);
+			bgLayer2.Draw(spriteBatch);
+
+			// Draw the Enemies
+			for (int i = 0; i < enemies.Count; i++)
+			{
+			enemies[i].Draw(spriteBatch);
+			}
 			// Draw the Player
-			player.Draw(spriteBatch, isHoriz, isDown, isUp, isDiagUpLeft, isDiagDownLeft, isDiagDownRight, isDiagUpRight);
+			player.Draw(spriteBatch);
 
 			// Stop drawing
 			spriteBatch.End();
