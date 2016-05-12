@@ -16,6 +16,10 @@ namespace FirstGame.Controller
 		private bool isHoriz;
 		private bool isDown;
 		private bool isUp;
+		private bool isDiagUpLeft;
+		private bool isDiagDownLeft;
+		private bool isDiagDownRight;
+		private bool isDiagUpRight;
 		private GraphicsDeviceManager graphics;
 		private SpriteBatch spriteBatch;
 		private Player player;
@@ -36,6 +40,10 @@ namespace FirstGame.Controller
 		public FirstGame ()
 		{
 			graphics = new GraphicsDeviceManager (this);
+			graphics.PreferredBackBufferWidth = 800;
+			graphics.PreferredBackBufferHeight = 800;
+			graphics.IsFullScreen = true;
+			graphics.ApplyChanges ();
 			Content.RootDirectory = "Content";
 		}
 		#endregion
@@ -65,7 +73,7 @@ namespace FirstGame.Controller
 			spriteBatch = new SpriteBatch (GraphicsDevice);
 
 			// Load the player resources 
-			Vector2 playerPosition = new Vector2(GraphicsDevice.Viewport.TitleSafeArea.X - 15,GraphicsDevice.Viewport.TitleSafeArea.Y +GraphicsDevice.Viewport.TitleSafeArea.Height / 3);
+			Vector2 playerPosition = new Vector2(GraphicsDevice.Viewport.TitleSafeArea.X, GraphicsDevice.Viewport.TitleSafeArea.Y +GraphicsDevice.Viewport.TitleSafeArea.Height / 2);
 
 			//Initializes the player's texture
 			player.Initialize(Content.Load<Texture2D>("Textures/player"), playerPosition);
@@ -76,32 +84,32 @@ namespace FirstGame.Controller
 		private void UpdatePlayer(GameTime gameTime)
 		{
 			// Get Thumbstick Controls
-			player.Position.X += currentGamePadState.ThumbSticks.Left.X *playerMoveSpeed;
-			player.Position.Y -= currentGamePadState.ThumbSticks.Left.Y *playerMoveSpeed;
+			player.Position.X += currentGamePadState.ThumbSticks.Left.X * playerMoveSpeed;
+			player.Position.Y -= currentGamePadState.ThumbSticks.Left.Y * playerMoveSpeed;
 			// Use the Keyboard / Dpad
 			if (currentKeyboardState.IsKeyDown(Keys.Left) || currentKeyboardState.IsKeyDown(Keys.A) ||
 				currentGamePadState.DPad.Left == ButtonState.Pressed)
 			{
 				player.Position.X -= playerMoveSpeed;
-				isHoriz = true;
-				isDown = false;
-				isUp = false;
+				isHoriz = true;	isDown = false;	isUp = false;
+				isDiagDownLeft = false;	isDiagDownRight = false;
+				isDiagUpLeft = false;		isDiagUpRight = false;
 			}
 			if (currentKeyboardState.IsKeyDown(Keys.Right) || currentKeyboardState.IsKeyDown(Keys.D) ||
 				currentGamePadState.DPad.Right == ButtonState.Pressed)
 			{
 				player.Position.X += playerMoveSpeed;
-				isHoriz = false;
-				isDown = false;
-				isUp = false;
+				isHoriz = false;	isDown = false;	isUp = false;
+				isDiagDownLeft = false;	isDiagDownRight = false;
+				isDiagUpLeft = false;		isDiagUpRight = false;
 			}
 			if (currentKeyboardState.IsKeyDown(Keys.Up) || currentKeyboardState.IsKeyDown(Keys.W) ||
 				currentGamePadState.DPad.Up == ButtonState.Pressed)
 			{
 				player.Position.Y -= playerMoveSpeed;
-				isHoriz = false;
-				isDown = false;
-				isUp = true;
+				isHoriz = false;	isDown = false;	isUp = true;
+				isDiagDownLeft = false;	isDiagDownRight = false;
+				isDiagUpLeft = false;		isDiagUpRight = false;
 			}
 			if (currentKeyboardState.IsKeyDown(Keys.Down) || currentKeyboardState.IsKeyDown(Keys.S) ||
 				currentGamePadState.DPad.Down == ButtonState.Pressed)
@@ -110,6 +118,44 @@ namespace FirstGame.Controller
 				isHoriz = false;
 				isDown = true;
 				isUp = false;
+				isDiagDownLeft = false;	isDiagDownRight = false;
+				isDiagUpLeft = false;		isDiagUpRight = false;
+			}
+			if (currentKeyboardState.IsKeyDown(Keys.Down) && currentKeyboardState.IsKeyDown(Keys.Left) ||
+				currentGamePadState.DPad.Down == ButtonState.Pressed)
+			{
+				isHoriz = false;
+				isDown = false;
+				isUp = false;
+				isDiagDownLeft = true;	isDiagDownRight = false;
+				isDiagUpLeft = false;		isDiagUpRight = false;
+			}
+			if (currentKeyboardState.IsKeyDown(Keys.Up) && currentKeyboardState.IsKeyDown(Keys.Left) ||
+				currentGamePadState.DPad.Down == ButtonState.Pressed)
+			{
+				isHoriz = false;
+				isDown = false;
+				isUp = false;
+				isDiagDownLeft = false;	isDiagDownRight = false;
+				isDiagUpLeft = true;		isDiagUpRight = false;
+			}
+			if (currentKeyboardState.IsKeyDown(Keys.Down) && currentKeyboardState.IsKeyDown(Keys.Right) ||
+				currentGamePadState.DPad.Down == ButtonState.Pressed)
+			{
+				isHoriz = false;
+				isDown = false;
+				isUp = false;
+				isDiagDownLeft = false;	isDiagDownRight = true;
+				isDiagUpLeft = false;		isDiagUpRight = false;
+			}
+			if (currentKeyboardState.IsKeyDown(Keys.Up) && currentKeyboardState.IsKeyDown(Keys.Right) ||
+				currentGamePadState.DPad.Down == ButtonState.Pressed)
+			{
+				isHoriz = false;
+				isDown = false;
+				isUp = false;
+				isDiagDownLeft = false;	isDiagDownRight = false;
+				isDiagUpLeft = false;		isDiagUpRight = true;
 			}
 			setPlayerBounds ();
 		}
@@ -119,8 +165,8 @@ namespace FirstGame.Controller
 		// Sets the player bounds position
 		private void setPlayerBounds()
 		{
-			player.Position.X = MathHelper.Clamp(player.Position.X, -15,GraphicsDevice.Viewport.Width - player.Width);
-			player.Position.Y = MathHelper.Clamp(player.Position.Y, 0,GraphicsDevice.Viewport.Height - player.Height);
+			player.Position.X = MathHelper.Clamp(player.Position.X, 60, GraphicsDevice.Viewport.Width - 60);
+			player.Position.Y = MathHelper.Clamp(player.Position.Y, 60, GraphicsDevice.Viewport.Height - player.Height);
 		}
 		#endregion
 
@@ -160,7 +206,7 @@ namespace FirstGame.Controller
 			spriteBatch.Begin();
 
 			// Draw the Player
-			player.Draw(spriteBatch, isHoriz, isDown, isUp);
+			player.Draw(spriteBatch, isHoriz, isDown, isUp, isDiagUpLeft, isDiagDownLeft, isDiagDownRight, isDiagUpRight);
 
 			// Stop drawing
 			spriteBatch.End();

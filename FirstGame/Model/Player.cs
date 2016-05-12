@@ -1,13 +1,16 @@
 ﻿using System;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using FirstGame.View;
 
 namespace FirstGame.Model
 {
 	public class Player
 	{
 		#region Declaration Section
+		private Animation playerAnimation;
 		private SpriteBatch spriteBatch;
+		private Vector2 origin;
 		private int score;
 		private bool active;
 		private int health;
@@ -18,6 +21,11 @@ namespace FirstGame.Model
 		// Position of the Player relative to the upper left side of the screen
 		public Vector2 Position;
 		#endregion
+
+		public Animation PlayerAnimation()
+		{
+
+		}
 
 		#region Variable Properties (Getters/Setters)
 		//Properties for Variables
@@ -57,6 +65,8 @@ namespace FirstGame.Model
 			// Set the starting position of the player around the middle of the screen and to the back
 			Position = position;
 
+			origin.X = texture.Width / 2;
+			origin.Y = texture.Height / 2;
 			// Set the player to be active
 			active = true;
 
@@ -68,16 +78,26 @@ namespace FirstGame.Model
 		}
 		#endregion
 
-		public void Draw(SpriteBatch spriteBatch, bool isHoriz, bool isDown, bool isUp)
+		public void Draw(SpriteBatch spriteBatch, bool isHoriz, bool isDown, bool isUp, bool isDiagUpLeft, bool isDiagDownLeft, bool isDiagDownRight, bool isDiagUpRight)
 		{ 
 			if(isHoriz == true)
-				spriteBatch.Draw(PlayerTexture, Position, null, Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.FlipHorizontally, 0f);
+				spriteBatch.Draw(PlayerTexture, Position, null, Color.White, 0f, origin, 1f, SpriteEffects.FlipHorizontally, 0f);
 			if (isDown == true)
-				spriteBatch.Draw (PlayerTexture, Position, null, Color.White, 1.6f, Vector2.Zero, 1f, SpriteEffects.None, 0f);
+				spriteBatch.Draw (PlayerTexture, Position, null, Color.White, 1.6f, origin, 1f, SpriteEffects.None, 0f);
 			if (isUp == true)
-				spriteBatch.Draw (PlayerTexture, Position, null, Color.White, -1.6f, Vector2.Zero, 1f, SpriteEffects.None, 0f);
-			if(isHoriz == false && isDown == false && isUp == false)
-				spriteBatch.Draw(PlayerTexture, Position, null, Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f);
+				spriteBatch.Draw (PlayerTexture, Position, null, Color.White, -1.6f, origin, 1f, SpriteEffects.None, 0f);
+			if (isDiagDownLeft == true)
+				spriteBatch.Draw (PlayerTexture, Position, null, Color.White, -.4f, origin, 1f, SpriteEffects.FlipHorizontally, 0f);
+			if (isDiagUpLeft == true)
+				spriteBatch.Draw (PlayerTexture, Position, null, Color.White, .4f, origin, 1f, SpriteEffects.FlipHorizontally, 0f);
+			if (isDiagDownRight == true)
+				spriteBatch.Draw (PlayerTexture, Position, null, Color.White, .4f, origin, 1f, SpriteEffects.None, 0f);
+			if (isDiagUpRight == true)
+				spriteBatch.Draw (PlayerTexture, Position, null, Color.White, -.4f, origin, 1f, SpriteEffects.None, 0f);
+			
+			if(isHoriz == false && isDown == false && isUp == false && isDiagDownLeft == false && isDiagUpLeft == false && isDiagDownRight == false && isDiagUpRight == false)
+				spriteBatch.Draw(PlayerTexture, Position, null, Color.White, 0f, origin, 1f, SpriteEffects.None, 0f);
+			
 		}
 	}
 }
