@@ -1,9 +1,13 @@
 ﻿<Properties StartupItem="FirstGame/FirstGame.csproj">
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug|x86" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="FirstGame/Controller/FirstGame.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="FirstGame/Model/Projectile.cs">
     <Files>
-      <File FileName="FirstGame/Controller/FirstGame.cs" Line="103" Column="19" />
-      <File FileName="FirstGame/Model/Player.cs" Line="76" Column="75" />
+      <File FileName="FirstGame/Controller/FirstGame.cs" Line="360" Column="16" />
+      <File FileName="FirstGame/Model/Player.cs" Line="1" Column="1" />
+      <File FileName="FirstGame/View/Animation.cs" Line="1" Column="1" />
+      <File FileName="FirstGame/View/ParallaxingBackground.cs" Line="1" Column="1" />
+      <File FileName="FirstGame/Model/Enemy.cs" Line="63" Column="3" />
+      <File FileName="FirstGame/Model/Projectile.cs" Line="45" Column="4" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
