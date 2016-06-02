@@ -2,7 +2,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace FirstGame
+namespace FirstGame.Model
 {
 	public class Projectile
 	{
@@ -55,8 +55,8 @@ namespace FirstGame
 			Position.X += projectileMoveSpeed;
 
 			// Deactivate the bullet if it goes out of screen
-			if (Position.X + Texture.Width / 2 > viewport.Width)
-				Active = false;
+			//if (Position.X + Texture.Width / 2 > viewport.Width)
+				//Active = false;
 		}
 		public void Draw(SpriteBatch spriteBatch)
 		{
